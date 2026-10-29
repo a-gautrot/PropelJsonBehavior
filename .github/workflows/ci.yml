@@ -76,8 +76,8 @@ jobs:
           name: github-php-8.4
           fail_ci_if_error: true
 
-  databases:
-    name: ${{ matrix.database }} / ${{ matrix.os }} / php ${{ matrix.php }}
+  mysql:
+    name: mysql / ${{ matrix.os }} / php ${{ matrix.php }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -88,7 +88,6 @@ jobs:
           - windows-2025
           - macos-26
           - macos-26-intel
-        database: [mysql, mariadb, postgres]
         php:
           - '7.4'
           - '8.0'
@@ -97,19 +96,6 @@ jobs:
           - '8.3'
           - '8.4'
           - '8.5'
-        include:
-          - database: mysql
-            driver: mysql
-            port: '3306'
-            docker-port: '33361'
-          - database: mariadb
-            driver: mysql
-            port: '3306'
-            docker-port: '33362'
-          - database: postgres
-            driver: pgsql
-            port: '5432'
-            docker-port: '35433'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -117,38 +103,124 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          extensions: pdo_mysql, pdo_sqlite
           coverage: none
       - run: composer u -n --prefer-dist --no-progress --prefer-stable
-      - name: Start database with Docker on Linux
+      - name: Start MySQL with Docker on Linux
         if: runner.os == 'Linux'
-        run: docker compose -f tests/compose.yaml up -d --wait ${{ matrix.database }}
+        run: docker compose -f tests/compose.yaml up -d --wait mysql
       - name: Start native MySQL
-        if: runner.os != 'Linux' && matrix.database == 'mysql'
+        if: runner.os != 'Linux'
         uses: ankane/setup-mysql@v1
         with:
           mysql-version: '8.4'
           database: json_behavior
           user: ci
+      - name: Test MySQL
+        run: composer test
+        env:
+          TEST_DSN: mysql:host=127.0.0.1;port=${{ runner.os == 'Linux' && '33361' || '3306' }};dbname=json_behavior
+          TEST_USER: ${{ runner.os == 'Linux' && 'root' || 'ci' }}
+          TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || '' }}
+      - name: Stop test databases
+        if: ${{ always() && runner.os == 'Linux' }}
+        run: docker compose -f tests/compose.yaml down --volumes
+
+  mariadb:
+    name: mariadb / ${{ matrix.os }} / php ${{ matrix.php }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+          - windows-2025
+          - macos-26
+          - macos-26-intel
+        php:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, pdo_sqlite
+          coverage: none
+      - run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - name: Start MariaDB with Docker on Linux
+        if: runner.os == 'Linux'
+        run: docker compose -f tests/compose.yaml up -d --wait mariadb
       - name: Start native MariaDB
-        if: runner.os != 'Linux' && matrix.database == 'mariadb'
+        if: runner.os != 'Linux'
         uses: ankane/setup-mariadb@v1
         with:
           mariadb-version: '11.4'
           database: json_behavior
           user: ci
+      - name: Test MariaDB
+        run: composer test
+        env:
+          TEST_DSN: mysql:host=127.0.0.1;port=${{ runner.os == 'Linux' && '33362' || '3306' }};dbname=json_behavior
+          TEST_USER: ${{ runner.os == 'Linux' && 'root' || 'ci' }}
+          TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || '' }}
+      - name: Stop test databases
+        if: ${{ always() && runner.os == 'Linux' }}
+        run: docker compose -f tests/compose.yaml down --volumes
+
+  postgres:
+    name: postgres / ${{ matrix.os }} / php ${{ matrix.php }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+          - windows-2025
+          - macos-26
+          - macos-26-intel
+        php:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_pgsql, pdo_sqlite
+          coverage: none
+      - run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - name: Start PostgreSQL with Docker on Linux
+        if: runner.os == 'Linux'
+        run: docker compose -f tests/compose.yaml up -d --wait postgres
       - name: Start native PostgreSQL
-        if: runner.os != 'Linux' && matrix.database == 'postgres'
+        if: runner.os != 'Linux'
         uses: ankane/setup-postgres@v1
         with:
           postgres-version: '17'
           database: json_behavior
           user: ci
-      - name: Test selected database
+      - name: Test PostgreSQL
         run: composer test
         env:
-          TEST_DSN: ${{ matrix.driver }}:host=127.0.0.1;port=${{ runner.os == 'Linux' && matrix.docker-port || matrix.port }};dbname=json_behavior
-          TEST_USER: ${{ runner.os == 'Linux' && (matrix.database == 'postgres' && 'postgres' || 'root') || 'ci' }}
+          TEST_DSN: pgsql:host=127.0.0.1;port=${{ runner.os == 'Linux' && '35433' || '5432' }};dbname=json_behavior
+          TEST_USER: ${{ runner.os == 'Linux' && 'postgres' || 'ci' }}
           TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || '' }}
       - name: Stop test databases
         if: ${{ always() && runner.os == 'Linux' }}
