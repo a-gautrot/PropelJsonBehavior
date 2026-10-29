@@ -2,9 +2,9 @@
 
 [![Latest stable version](https://img.shields.io/packagist/v/gautrot/propel-json-behavior)](https://packagist.org/packages/gautrot/propel-json-behavior)
 ![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/Gautrot/PropelJsonBehavior/ci.yml?branch=1.0)](https://github.com/Gautrot/PropelJsonBehavior/actions/workflows/ci.yml)
-[![Travis CI (1.0)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior.svg?branch=1.0)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior)
-[![Codecov (1.0)](https://img.shields.io/codecov/c/github/gautrot/PropelJsonBehavior/1.0)](https://codecov.io/gh/gautrot/PropelJsonBehavior/tree/1.0)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/Gautrot/PropelJsonBehavior/ci.yml?branch=dev)](https://github.com/Gautrot/PropelJsonBehavior/actions/workflows/ci.yml)
+[![Travis CI (dev)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior.svg?branch=dev)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior)
+[![Codecov (dev)](https://img.shields.io/codecov/c/github/gautrot/PropelJsonBehavior/dev)](https://codecov.io/gh/gautrot/PropelJsonBehavior/tree/dev)
 
 **Propel JSON Behavior** is an extension for JSON query filters in Propel 2, inspired by [Laravel's JSON queries](https://laravel.com/framework/docs/queries#json-where-clauses).
 
