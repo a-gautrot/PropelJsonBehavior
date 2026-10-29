@@ -1,5 +1,5 @@
 {
-  "name": "agautrot/propel-json-behavior",
+  "name": "a-gautrot/propel-json-behavior",
   "description": "Integration of JSON query filters in Propel, inspired by Laravel's JSON where clauses",
   "type": "propel-behavior",
   "license": "MIT",
