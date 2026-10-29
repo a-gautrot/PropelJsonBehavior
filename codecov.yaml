@@ -1,0 +1,26 @@
+component_management:
+  individual_components:
+    - component_id: "src"
+      paths:
+        - "src/"
+
+    - component_id: "templates"
+      paths:
+        - "templates/"
+
+flags:
+  github:
+    paths:
+      - src/
+      - templates/
+  travis:
+    paths:
+      - src/
+      - templates/
+
+ignore:
+  - tests/
+  - vendor/
+
+comment:
+  layout: "header, diff, flags, components"

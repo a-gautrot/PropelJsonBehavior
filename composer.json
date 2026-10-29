@@ -1,0 +1,48 @@
+{
+  "name": "gautrot/propel-json-behavior",
+  "description": "Integration of JSON query filters in Propel, inspired by Laravel's JSON where clauses",
+  "type": "propel-behavior",
+  "license": "MIT",
+  "keywords": [
+    "propel",
+    "behavior",
+    "json"
+  ],
+  "authors": [
+    {
+      "name": "Alexandre Gautrot",
+      "email": "alexandre.gautrot@etik.com"
+    }
+  ],
+  "require": {
+    "ext-json": "*",
+    "php": "^7.4||>=8.0",
+    "propel/propel": "~2.0.0-beta4||^2.0"
+  },
+  "require-dev": {
+    "ext-pdo_sqlite": "*",
+    "mikey179/vfsstream": "^1.6",
+    "phpstan/phpstan": "@stable",
+    "phpunit/phpunit": ">=9.6.33",
+    "squizlabs/php_codesniffer": "@stable",
+    "vimeo/psalm": "@stable"
+  },
+  "autoload": {
+    "psr-4": {
+      "Gautrot\\Propel\\Behavior\\Json\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Gautrot\\Propel\\Behavior\\Json\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "name": "json",
+    "class": "\\Gautrot\\Propel\\Behavior\\Json\\JsonBehavior"
+  },
+  "scripts": {
+    "test": "@php tests/run.php",
+    "test:coverage": "@test --coverage-clover tests/coverage.xml --log-junit tests/junit.xml"
+  }
+}

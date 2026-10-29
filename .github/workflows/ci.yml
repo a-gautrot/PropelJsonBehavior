@@ -1,0 +1,155 @@
+name: GitHub Actions - CI branch dev
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  sqlite:
+    name: SQLite / ${{ matrix.os }} / PHP ${{ matrix.php }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+          - windows-2025
+          - windows-11-arm
+          - macos-26
+        php:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+        include:
+          - php: '7.4'
+            os: ubuntu-26.04
+            dependencies: lowest
+          - php: '8.5'
+            os: macos-26-intel
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+      - name: Install dependencies
+        if: matrix.dependencies != 'lowest'
+        run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - name: Install lowest supported dependencies
+        if: matrix.dependencies == 'lowest'
+        run: composer u --with propel/propel:2.0.0-beta4 -n --prefer-dist --no-progress --prefer-lowest --prefer-stable
+      - run: composer validate --strict
+      - run: composer test
+
+  coverage:
+    name: Coverage / PHP 8.4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: xdebug
+      - run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - run: composer test:coverage
+        env:
+          XDEBUG_MODE: coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: tests/coverage.xml
+          disable_search: true
+          flags: github
+          name: github-php-8.4
+          fail_ci_if_error: true
+
+  databases:
+    name: ${{ matrix.database }} / ${{ matrix.os }} / PHP ${{ matrix.php }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+          - windows-2025
+          - macos-26
+          - macos-26-intel
+        database: [mysql, mariadb, postgres]
+        php:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+        include:
+          - database: mysql
+            driver: mysql
+            port: '3306'
+            docker-port: '33361'
+          - database: mariadb
+            driver: mysql
+            port: '3306'
+            docker-port: '33362'
+          - database: postgres
+            driver: pgsql
+            port: '5432'
+            docker-port: '35433'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          coverage: none
+      - run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - name: Start database with Docker on Linux
+        if: runner.os == 'Linux'
+        run: docker compose -f tests/compose.yaml up -d --wait ${{ matrix.database }}
+      - name: Start native MySQL
+        if: runner.os != 'Linux' && matrix.database == 'mysql'
+        uses: ankane/setup-mysql@v1
+        with:
+          mysql-version: '8.4'
+          database: json_behavior
+          user: ci
+      - name: Start native MariaDB
+        if: runner.os != 'Linux' && matrix.database == 'mariadb'
+        uses: ankane/setup-mariadb@v1
+        with:
+          mariadb-version: '11.4'
+          database: json_behavior
+          user: ci
+      - name: Start native PostgreSQL
+        if: runner.os != 'Linux' && matrix.database == 'postgres'
+        uses: ankane/setup-postgres@v1
+        with:
+          postgres-version: '17'
+          database: json_behavior
+          user: ci
+      - name: Test selected database
+        run: composer test
+        env:
+          TEST_DSN: ${{ matrix.driver }}:host=127.0.0.1;port=${{ runner.os == 'Linux' && matrix.docker-port || matrix.port }};dbname=json_behavior
+          TEST_USER: ${{ runner.os == 'Linux' && (matrix.database == 'postgres' && 'postgres' || 'root') || 'ci' }}
+          TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || '' }}
+      - name: Stop test databases
+        if: ${{ always() && runner.os == 'Linux' }}
+        run: docker compose -f tests/compose.yaml down --volumes
