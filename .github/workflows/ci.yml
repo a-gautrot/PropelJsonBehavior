@@ -1,4 +1,4 @@
-name: GitHub Actions - CI branch 1.0
+name: GitHub Actions - CI branch main
 
 on: [push, pull_request, workflow_dispatch]
 
