@@ -13,7 +13,7 @@
 Install via composer:
 
 ```shell
-composer require gautrot/propel-json-behavior
+composer require agautrot/propel-json-behavior
 ```
 
 Or insert the following in your composer.json file:
@@ -21,7 +21,7 @@ Or insert the following in your composer.json file:
 ```json
 {
   "require": {
-    "gautrot/propel-json-behavior": "~1.0"
+    "agautrot/propel-json-behavior": "~1.0"
   }
 }
 ```
