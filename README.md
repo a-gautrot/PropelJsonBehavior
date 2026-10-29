@@ -1,10 +1,10 @@
 # PropelJsonBehavior
 
-[![Latest stable version](https://img.shields.io/packagist/v/gautrot/propel-json-behavior)](https://packagist.org/packages/gautrot/propel-json-behavior)
+[![Latest stable version](https://img.shields.io/packagist/v/a-gautrot/propel-json-behavior)](https://packagist.org/packages/a-gautrot/propel-json-behavior)
 ![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/Gautrot/PropelJsonBehavior/ci.yml?branch=1.0)](https://github.com/Gautrot/PropelJsonBehavior/actions/workflows/ci.yml)
-[![Travis CI (1.0)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior.svg?branch=1.0)](https://app.travis-ci.com/Gautrot/PropelJsonBehavior)
-[![Codecov (1.0)](https://img.shields.io/codecov/c/github/gautrot/PropelJsonBehavior/1.0)](https://codecov.io/gh/gautrot/PropelJsonBehavior/tree/1.0)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/a-gautrot/PropelJsonBehavior/ci.yml?branch=1.0)](https://github.com/a-gautrot/PropelJsonBehavior/actions/workflows/ci.yml)
+[![Travis CI (1.0)](https://app.travis-ci.com/a-gautrot/PropelJsonBehavior.svg?branch=1.0)](https://app.travis-ci.com/a-gautrot/PropelJsonBehavior)
+[![Codecov (1.0)](https://img.shields.io/codecov/c/github/a-gautrot/PropelJsonBehavior/1.0)](https://codecov.io/gh/a-gautrot/PropelJsonBehavior/tree/1.0)
 
 **Propel JSON Behavior** is an extension for JSON query filters in Propel 2, inspired by [Laravel's JSON queries](https://laravel.com/framework/docs/queries#json-where-clauses).
 
@@ -13,7 +13,7 @@
 Install via composer:
 
 ```shell
-composer require agautrot/propel-json-behavior
+composer require a-gautrot/propel-json-behavior
 ```
 
 Or insert the following in your composer.json file:
@@ -21,7 +21,7 @@ Or insert the following in your composer.json file:
 ```json
 {
   "require": {
-    "agautrot/propel-json-behavior": "~1.0"
+    "a-gautrot/propel-json-behavior": "~1.0"
   }
 }
 ```
