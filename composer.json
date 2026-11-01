@@ -15,15 +15,22 @@
     }
   ],
   "require": {
-    "ext-json": "*",
     "php": "^7.4||>=8.0",
-    "propel/propel": "~2.0.0-beta4||^2.0"
+    "ext-json": "*",
+    "propel/propel": "~2.0.0-beta4||^2.0",
+    "symfony/polyfill-php80": "^1.33",
+    "symfony/polyfill-php81": "^1.33",
+    "symfony/polyfill-php82": "^1.33",
+    "symfony/polyfill-php83": "^1.33",
+    "symfony/polyfill-php84": "^1.33",
+    "symfony/polyfill-php85": "^1.33"
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
     "mikey179/vfsstream": "^1.6",
     "phpstan/phpstan": "@stable",
     "phpunit/phpunit": ">=9.6.33",
+    "rector/rector": "^2.8",
     "squizlabs/php_codesniffer": "@stable",
     "vimeo/psalm": "@stable"
   },
