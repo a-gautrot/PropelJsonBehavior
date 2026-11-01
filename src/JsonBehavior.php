@@ -12,7 +12,7 @@ use Propel\Generator\Model\Behavior;
 class JsonBehavior extends Behavior
 {
     /**
-     * @param AbstractOMBuilder $builder
+     * @param  AbstractOMBuilder $builder
      * @return string
      */
     public function queryAttributes(AbstractOMBuilder $builder): string
