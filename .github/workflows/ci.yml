@@ -6,6 +6,32 @@ permissions:
   contents: read
 
 jobs:
+  coverage:
+    name: coverage / php 8.4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite
+          coverage: xdebug
+      - run: composer u -n --prefer-dist --no-progress --prefer-stable
+      - run: composer test:coverage
+        env:
+          XDEBUG_MODE: coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: tests/coverage.xml
+          disable_search: true
+          flags: github
+          name: github-php-8.4
+          fail_ci_if_error: true
+
   sqlite:
     name: sqlite / ${{ matrix.os }} / php ${{ matrix.php }}
     runs-on: ${{ matrix.os }}
@@ -33,10 +59,10 @@ jobs:
           - php: '8.5'
             os: macos-26-intel
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
           extensions: pdo_sqlite
@@ -48,33 +74,8 @@ jobs:
         if: matrix.dependencies == 'lowest'
         run: composer u --with propel/propel:2.0.0-beta4 -n --prefer-dist --no-progress --prefer-lowest --prefer-stable
       - run: composer validate --strict
+      - run: composer audit --locked
       - run: composer test
-
-  coverage:
-    name: coverage / php 8.4
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_sqlite
-          coverage: xdebug
-      - run: composer u -n --prefer-dist --no-progress --prefer-stable
-      - run: composer test:coverage
-        env:
-          XDEBUG_MODE: coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: tests/coverage.xml
-          disable_search: true
-          flags: github
-          name: github-php-8.4
-          fail_ci_if_error: true
 
   mysql:
     name: mysql / ${{ matrix.os }} / php ${{ matrix.php }}
@@ -97,10 +98,10 @@ jobs:
           - '8.4'
           - '8.5'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
           extensions: pdo_mysql, pdo_sqlite
@@ -111,7 +112,7 @@ jobs:
         run: docker compose -f tests/compose.yaml up -d --wait mysql
       - name: Start native MySQL
         if: runner.os != 'Linux'
-        uses: ankane/setup-mysql@v1
+        uses: ankane/setup-mysql@4aa1b08412d4c8bf537fea5bc412e4e831d839d7 # v1
         with:
           mysql-version: '8.4'
           database: json_behavior
@@ -147,10 +148,10 @@ jobs:
           - '8.4'
           - '8.5'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
           extensions: pdo_mysql, pdo_sqlite
@@ -161,7 +162,7 @@ jobs:
         run: docker compose -f tests/compose.yaml up -d --wait mariadb
       - name: Start native MariaDB
         if: runner.os != 'Linux'
-        uses: ankane/setup-mariadb@v1
+        uses: ankane/setup-mariadb@e34d4859081a8192918ea2302b7c9a71475a0d73 # v1
         with:
           mariadb-version: '11.4'
           database: json_behavior
@@ -197,10 +198,10 @@ jobs:
           - '8.4'
           - '8.5'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
           extensions: pdo_pgsql, pdo_sqlite
@@ -211,7 +212,7 @@ jobs:
         run: docker compose -f tests/compose.yaml up -d --wait postgres
       - name: Start native PostgreSQL
         if: runner.os != 'Linux'
-        uses: ankane/setup-postgres@v1
+        uses: ankane/setup-postgres@b1a598d92f86cb2ed364411898d150d4eac6d5ca # v1
         with:
           postgres-version: '17'
           database: json_behavior

@@ -19,6 +19,7 @@ flags:
       - templates/
 
 ignore:
+  - stubs/
   - tests/
   - vendor/
 

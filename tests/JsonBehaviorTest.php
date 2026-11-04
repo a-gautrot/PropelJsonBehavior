@@ -14,7 +14,7 @@ final class JsonBehaviorTest extends TestCase
     /**
      * @return void
      */
-    public function testComposerRegistersTheJsonBehavior(): void
+    public function testRegistration(): void
     {
         $config = new QuickGeneratorConfig();
         self::assertSame(JsonBehavior::class, ltrim($config->getBehaviorLocator()->getBehavior('json'), '\\'));

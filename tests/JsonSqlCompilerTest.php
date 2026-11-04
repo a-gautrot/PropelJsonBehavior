@@ -31,7 +31,7 @@ final class JsonSqlCompilerTest extends TestCase
      * @throws JsonException
      */
     #[DataProvider('drivers')]
-    public function testEachExpressionHasOneBoundParameter(string $driver): void
+    public function testBindings(string $driver): void
     {
         $compiler = new JsonSqlCompiler($driver);
         $path = new JsonPath('Options->languages->0');
@@ -53,7 +53,7 @@ final class JsonSqlCompilerTest extends TestCase
     /**
      * @return void
      */
-    public function testUnsupportedDriverIsRejected(): void
+    public function testUnsupportedDriver(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new JsonSqlCompiler('sqlsrv');
@@ -63,7 +63,7 @@ final class JsonSqlCompilerTest extends TestCase
      * @return void
      * @throws JsonException
      */
-    public function testSqliteRejectsObjectContainment(): void
+    public function testSqliteObjects(): void
     {
         $this->expectException(InvalidArgumentException::class);
         (new JsonSqlCompiler('sqlite'))
@@ -73,7 +73,7 @@ final class JsonSqlCompilerTest extends TestCase
     /**
      * @return void
      */
-    public function testNegativeLengthIsRejected(): void
+    public function testNegativeLength(): void
     {
         $this->expectException(InvalidArgumentException::class);
         (new JsonSqlCompiler('mysql'))

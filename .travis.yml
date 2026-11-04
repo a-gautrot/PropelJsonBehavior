@@ -39,6 +39,7 @@ install:
 
 script:
   - composer validate --strict
+  - composer audit --locked
   - |
     if [ "$COVERAGE" = "1" ]; then
       php --ri xdebug
@@ -51,6 +52,6 @@ after_success:
   - |
     if [ "$COVERAGE" = "1" ]; then
       python3 -m venv /tmp/propel-json-codecov
-      /tmp/propel-json-codecov/bin/pip install codecov-cli
+      /tmp/propel-json-codecov/bin/pip install codecov-cli==11.3.2
       /tmp/propel-json-codecov/bin/codecovcli --auto-load-params-from Travis upload-process --file tests/coverage.xml --disable-search --flag travis --name travis-php-8.4
     fi

@@ -3,4 +3,8 @@ parameters:
 	phpVersion: 70400
 	paths:
 		- src
-		- tests
+		- tests/Fixtures
+	excludePaths:
+		- templates
+	stubFiles:
+		- stubs/PropelBehavior.stub.php

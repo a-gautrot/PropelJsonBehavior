@@ -10,6 +10,7 @@ use Propel\Runtime\ActiveQuery\Criteria;
 /**
  * # JsonSqlCompiler
  * Produces expressions with exactly one bound parameter for Propel's RawModelCriterion
+ * @api
  */
 final class JsonSqlCompiler
 {
@@ -43,7 +44,7 @@ final class JsonSqlCompiler
      * @param string $column
      * @param JsonPath $path
      * @param string $operator
-     * @param $value
+     * @param mixed $value
      * @return array{string, mixed, int}
      * @throws JsonException
      */
@@ -67,7 +68,9 @@ final class JsonSqlCompiler
         }
 
         if (!is_scalar($value) || (is_float($value) && !is_finite($value))) {
-            throw new InvalidArgumentException('whereJson expects a finite scalar or null; use whereJsonContains for documents.');
+            throw new InvalidArgumentException(
+                'whereJson expects a finite scalar or null; use whereJsonContains for documents.'
+            );
         }
 
         $text = [
@@ -193,7 +196,7 @@ final class JsonSqlCompiler
     /**
      * @param string $column
      * @param JsonPath $path
-     * @param $value
+     * @param mixed $value
      * @param bool $not
      * @return array{string, string, int}
      * @throws JsonException
@@ -214,18 +217,26 @@ final class JsonSqlCompiler
                 $values = is_array($value) ? $value : [$value];
 
                 if ($values !== array_values($values)) {
-                    throw new InvalidArgumentException('SQLite containment supports scalars and lists of scalars only.');
+                    throw new InvalidArgumentException(
+                        'SQLite containment supports scalars and lists of scalars only.'
+                    );
                 }
 
                 foreach ($values as $item) {
                     if ($item !== null && !is_scalar($item)) {
-                        throw new InvalidArgumentException('SQLite containment supports scalars and lists of scalars only.');
+                        throw new InvalidArgumentException(
+                            'SQLite containment supports scalars and lists of scalars only.'
+                        );
                     }
                 }
 
                 $encoded = json_encode($values, JSON_THROW_ON_ERROR);
                 $type = $this->type($column, $path);
-                $sql = "$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wanted WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real') AND json_wanted.type IN ('integer', 'real'))) AND json_actual.value IS json_wanted.value))";
+                $sql = "$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wanted"
+                    . " WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual"
+                    . " WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real')"
+                    . " AND json_wanted.type IN ('integer', 'real')))"
+                    . ' AND json_actual.value IS json_wanted.value))';
                 break;
         }
 
