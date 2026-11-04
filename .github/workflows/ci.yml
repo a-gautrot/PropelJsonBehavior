@@ -111,18 +111,27 @@ jobs:
         if: runner.os == 'Linux'
         run: docker compose -f tests/compose.yaml up -d --wait mysql
       - name: Start native MySQL
-        if: runner.os != 'Linux'
+        if: runner.os == 'macOS'
         uses: ankane/setup-mysql@4aa1b08412d4c8bf537fea5bc412e4e831d839d7 # v1
         with:
           mysql-version: '8.4'
           database: json_behavior
           user: ci
+      - name: Start MySQL on Windows
+        id: mysql_windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./.github/scripts/mysql.ps1 -Database json_behavior
       - name: Test MySQL
         run: composer test
         env:
-          TEST_DSN: mysql:host=127.0.0.1;port=${{ runner.os == 'Linux' && '33361' || '3306' }};dbname=json_behavior
+          TEST_DSN: mysql:host=127.0.0.1;port=${{ runner.os == 'Linux' && '33361' || runner.os == 'Windows' && '3307' || '3306' }};dbname=json_behavior
           TEST_USER: ${{ runner.os == 'Linux' && 'root' || 'ci' }}
-          TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || '' }}
+          TEST_PASSWORD: ${{ runner.os == 'Linux' && 'json_test' || runner.os == 'Windows' && steps.mysql_windows.outputs.password || '' }}
+      - name: Stop MySQL on Windows
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: ./.github/scripts/mysql.ps1 -Action Stop
       - name: Stop test databases
         if: ${{ always() && runner.os == 'Linux' }}
         run: docker compose -f tests/compose.yaml down --volumes
