@@ -79,4 +79,51 @@ final class JsonSqlCompilerTest extends TestCase
         (new JsonSqlCompiler('mysql'))
             ->length('r.options', new JsonPath('Options'), '=', -1);
     }
+
+    /**
+     * @return void
+     * @throws JsonException
+     */
+    public function testNullOrdering(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new JsonSqlCompiler('mysql'))->compare('r.options', new JsonPath('Options'), '>', null);
+    }
+
+    /**
+     * @return void
+     * @throws JsonException
+     */
+    public function testBooleanOrdering(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new JsonSqlCompiler('pgsql'))->compare('r.options', new JsonPath('Options'), '<', true);
+    }
+
+    /**
+     * @return void
+     * @throws JsonException
+     */
+    public function testSqliteNestedValues(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new JsonSqlCompiler('sqlite'))->contains('r.options', new JsonPath('Options'), [['nested']]);
+    }
+
+    /**
+     * @return void
+     * @throws JsonException
+     */
+    public function testNonFiniteValues(): void
+    {
+        $compiler = new JsonSqlCompiler('sqlite');
+        foreach ([INF, -INF, NAN] as $value) {
+            try {
+                $compiler->compare('r.options', new JsonPath('Options'), '=', $value);
+                self::fail('A non-finite JSON number must be rejected.');
+            } catch (InvalidArgumentException $exception) {
+                self::assertStringContainsString('finite scalar', $exception->getMessage());
+            }
+        }
+    }
 }

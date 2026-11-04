@@ -5,16 +5,22 @@ namespace Gautrot\Propel\Behavior\Json\Tests;
 use InvalidArgumentException;
 use JsonBehaviorRecord;
 use JsonBehaviorRecordQuery;
+use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Platform\SqlitePlatform;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\Pdo\SqliteAdapter;
+use Propel\Runtime\Map\ColumnMap;
+use Propel\Runtime\Map\TableMap;
+use Propel\Runtime\Propel;
 use Random\RandomException;
 
 /**
@@ -94,6 +100,14 @@ XML;
         self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->active', true)));
         self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->active', false)));
         self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->language', "fr' OR 1=1 --")));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function labels($query): array
+    {
+        return $query->orderByLabel()->select('Label')->find()->getData();
     }
 
     /**
@@ -189,12 +203,6 @@ XML;
     {
         $this->expectException(InvalidArgumentException::class);
         JsonBehaviorRecordQuery::create()->filterByOptions(['languages' => ['fr', 'en']]);
-    }
-
-    /** @return list<string> */
-    private function labels($query): array
-    {
-        return $query->orderByLabel()->select('Label')->find()->getData();
     }
 
     /**
@@ -339,5 +347,86 @@ XML;
     {
         $this->expectException(InvalidArgumentException::class);
         JsonBehaviorRecordQuery::create()->whereJson('Id', 1);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOperatorType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        JsonBehaviorRecordQuery::create()->whereJson('Options->score', [], 1);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMissingLength(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', '>');
+    }
+
+    /**
+     * @return void
+     */
+    public function testLengthOperatorType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', [], 1);
+    }
+
+    /**
+     * @return void
+     */
+    public function testColumnComparisons(): void
+    {
+        $operators = [
+            Criteria::EQUAL, Criteria::NOT_EQUAL, Criteria::ALT_NOT_EQUAL,
+            Criteria::LESS_THAN, Criteria::LESS_EQUAL, Criteria::GREATER_THAN, Criteria::GREATER_EQUAL,
+            Criteria::LIKE, Criteria::NOT_LIKE, Criteria::ILIKE, Criteria::NOT_ILIKE,
+            Criteria::IN, Criteria::NOT_IN, Criteria::ISNULL, Criteria::ISNOTNULL,
+        ];
+        foreach ($operators as $operator) {
+            $query = JsonBehaviorRecordQuery::create()->filterByOptions('unmatched', ' ' . strtolower($operator) . ' ');
+            self::assertSame($operator, $query->getLastCriterion()->getComparison());
+        }
+    }
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function testNonPdoAdapter(): void
+    {
+        $container = Propel::getServiceContainer();
+        $query = JsonBehaviorRecordQuery::create();
+        $database = $query->getDbName();
+        $adapter = $container->getAdapter($database);
+        $nonPdoAdapter = $this->createStub(AdapterInterface::class);
+        try {
+            $container->setAdapter($database, $nonPdoAdapter);
+            $this->expectException(InvalidArgumentException::class);
+            $this->expectExceptionMessageMatches('/JSON filters require a PDO adapter\./');
+            $query->whereJson('Options->language', 'fr');
+        } finally {
+            $container->setAdapter($database, $adapter);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testUnnamedTable(): void
+    {
+        $table = new TableMap();
+        $column = new ColumnMap('options', $table, 'Options', 'JSON');
+        $query = $this->getMockBuilder(JsonBehaviorRecordQuery::class)
+            ->onlyMethods(['getColumnFromName'])
+            ->getMock();
+        $query->expects(self::once())->method('getColumnFromName')->willReturn([$column, 'record.options']);
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches('/JSON filters require a named table\./');
+        $query->whereJson('Options->language', 'fr');
     }
 }

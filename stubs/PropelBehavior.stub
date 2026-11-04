@@ -3,7 +3,7 @@
 namespace Propel\Generator\Model;
 
 /**
- * A list of stub classes for the IDE, PHPStan, and Psalm
+ * Type contracts for PHPStan and Psalm
  */
 
 /**

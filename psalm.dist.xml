@@ -10,6 +10,6 @@
         </ignoreFiles>
     </projectFiles>
     <stubs>
-        <file name="stubs/PropelBehavior.stub.php"/>
+        <file name="stubs/PropelBehavior.stub"/>
     </stubs>
 </psalm>

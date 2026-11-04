@@ -43,4 +43,27 @@ final class JsonPathTest extends TestCase
         self::assertSame("'$.\"nested\"[0]'", $path->sqlPath());
         self::assertSame("ARRAY['nested', '0']::text[]", $path->postgresPath());
     }
+
+    /**
+     * @return void
+     */
+    public function testAliasedPath(): void
+    {
+        $path = new JsonPath('r.Options->languages->0');
+        self::assertSame('r.Options', $path->column);
+        self::assertSame(['languages', '0'], $path->segments);
+        self::assertSame("'$.\"languages\"[0]'", $path->sqlPath());
+        self::assertSame("ARRAY['languages', '0']::text[]", $path->postgresPath());
+    }
+
+    /**
+     * @return void
+     */
+    public function testNonStringSegment(): void
+    {
+        $path = new JsonPath('Options->safe');
+        $path->segments = [0];
+        $this->expectException(InvalidArgumentException::class);
+        $path->sqlPath();
+    }
 }

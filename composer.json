@@ -51,7 +51,7 @@
   },
   "scripts": {
     "test": "@php tests/run.php",
-    "test:coverage": "@test --coverage-clover tests/coverage.xml --log-junit tests/junit.xml",
+    "test:coverage": "@test --coverage-clover tests/coverage.xml --coverage-text --log-junit tests/junit.xml",
     "phpstan": "vendor/bin/phpstan analyse -c phpstan.dist.neon",
     "psalm": "vendor/bin/psalm --config=psalm.dist.xml",
     "phpcs": "phpcs --standard=PSR2 src",
