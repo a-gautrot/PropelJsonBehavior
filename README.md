@@ -1,4 +1,4 @@
-# PropelJsonBehavior
+# Propel JSON Behavior
 
 [![Latest stable version](https://img.shields.io/packagist/v/a-gautrot/propel-json-behavior)](https://packagist.org/packages/a-gautrot/propel-json-behavior)
 ![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)
@@ -145,6 +145,23 @@ UserQuery::create()
 
 Use column PHP names (`Options`). Operators accept both `Criteria` comparison constants and SQL strings.
 All JSON filters accept `.` and `->`.
+
+The behavior also extends Propel's generated `filterByOptions()` for JSON columns:
+
+```php
+UserQuery::create()
+    ->filterByOptions(['language' => 'fr', 'active' => true, 'address.country' => 'FR'])
+    ->find();
+
+UserQuery::create('u')
+    ->filterByOptions(['score' => 10], Criteria::GREATER_EQUAL)
+    ->find();
+```
+
+Array keys are relative JSON paths and values are scalars or JSON null. All entries must match;
+an empty array adds no condition. Use `whereJsonContains()` for array or object containment.
+Non-array arguments compare the whole column with validated Propel operators; custom SQL is rejected.
+The method follows the JSON column's PHP name. Regenerate the Propel models after updating the behavior.
 
 A valid `alias.Column` reference takes precedence over a JSON path; literal JSON keys containing dots or arrows are not
 supported.

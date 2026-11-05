@@ -2,21 +2,29 @@
 
 namespace Gautrot\Propel\Behavior\Json;
 
-use Propel\Generator\Builder\Om\AbstractOMBuilder;
+use Override;
 use Propel\Generator\Model\Behavior;
 
 /**
  * # JsonBehavior
  * Adds JSON filters to the generated base Query class
+ * @api
  */
-class JsonBehavior extends Behavior
+final class JsonBehavior extends Behavior
 {
     /**
-     * @param  AbstractOMBuilder $builder
-     * @return string
+     * @var JsonBehaviorQueryBuilderModifier|null
      */
-    public function queryAttributes(AbstractOMBuilder $builder): string
+    protected ?JsonBehaviorQueryBuilderModifier $queryBuilderModifier = null;
+
+    /**
+     * @return JsonBehaviorQueryBuilderModifier
+     */
+    #[Override]
+    public function getQueryBuilderModifier(): JsonBehaviorQueryBuilderModifier
     {
-        return $this->renderTemplate('queryAttributes', [], dirname(__DIR__) . '/templates/');
+        $this->queryBuilderModifier ??= new JsonBehaviorQueryBuilderModifier($this);
+
+        return $this->queryBuilderModifier;
     }
 }
