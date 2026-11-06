@@ -3,11 +3,7 @@
   "description": "Integration of JSON query filters in Propel, inspired by Laravel's JSON where clauses",
   "type": "propel-behavior",
   "license": "MIT",
-  "keywords": [
-    "propel",
-    "behavior",
-    "json"
-  ],
+  "keywords": ["propel", "behavior", "json"],
   "authors": [
     {
       "name": "Alexandre Gautrot",
@@ -47,7 +43,10 @@
   },
   "extra": {
     "name": "json",
-    "class": "\\Gautrot\\Propel\\Behavior\\Json\\JsonBehavior"
+    "class": "\\Gautrot\\Propel\\Behavior\\Json\\JsonBehavior",
+    "branch-alias": {
+      "dev-main": "1.0.x-dev"
+    }
   },
   "scripts": {
     "test": "@php tests/run.php",
