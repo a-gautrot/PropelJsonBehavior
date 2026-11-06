@@ -1,4 +1,4 @@
-# PropelJsonBehavior
+# Propel JSON Behavior
 
 [![Latest stable version](https://img.shields.io/packagist/v/a-gautrot/propel-json-behavior)](https://packagist.org/packages/a-gautrot/propel-json-behavior)
 ![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)
@@ -6,7 +6,8 @@
 [![Travis CI](https://app.travis-ci.com/a-gautrot/PropelJsonBehavior.svg?branch=main)](https://app.travis-ci.com/a-gautrot/PropelJsonBehavior)
 [![Codecov](https://img.shields.io/codecov/c/github/a-gautrot/PropelJsonBehavior/main)](https://codecov.io/gh/a-gautrot/PropelJsonBehavior/tree/main)
 
-**Propel JSON Behavior** is an extension for JSON query filters in Propel 2, inspired by [Laravel's JSON queries](https://laravel.com/framework/docs/queries#json-where-clauses).
+**Propel JSON Behavior** is an extension for JSON query filters in Propel 2, inspired
+by [Laravel's JSON queries](https://laravel.com/framework/docs/queries#json-where-clauses) for Eloquent.
 
 ## Installation
 
@@ -16,7 +17,7 @@ Install via composer:
 composer require a-gautrot/propel-json-behavior
 ```
 
-Or insert the following in your composer.json file:
+Or insert the following in `composer.json`:
 
 ```json
 {
@@ -26,7 +27,7 @@ Or insert the following in your composer.json file:
 }
 ```
 
-Add the behavior to your table:
+Then, add the new behavior, only if you have a JSON type column in the table:
 
 ```xml
 
@@ -39,19 +40,22 @@ Add the behavior to your table:
 </table>
 ```
 
-```sh
-# Regenerate Propel models after updating the schema.
-vendor/bin/propel model:build
+Finally, regenerate Propel models after updating the schema:
 
-# With PropelBundle, use this command instead.
-php bin/console propel:model:build
+```shell
+vendor/bin/propel model:build
 ```
 
-If `json` is not discovered, use `Gautrot\Propel\Behavior\Json\JsonBehavior` as the behavior name.
+If the name `json` is not discovered, use `Gautrot\Propel\Behavior\Json\JsonBehavior` as the behavior name:
+
+```xml
+
+<behavior name="Gautrot\Propel\Behavior\Json\JsonBehavior"/>
+```
 
 ## Usage
 
-Example `options.json`, stored in the `options` column:
+An example of a use case. Start with a JSON file (`options.json`), stored in the `options` column:
 
 ```json
 {
@@ -143,8 +147,25 @@ UserQuery::create()
     ->find();
 ```
 
-Use column PHP names (`Options`). Operators accept both `Criteria` comparison constants and SQL strings.
-All JSON filters accept `.` and `->`.
+Use column PHP names, such as `Options` in this example, and operators accept both `Criteria` comparison constants and
+SQL strings. In addition to supporting arrow joins (`->`), like in Eloquent, all JSON filters accept dot joints (`.`).
+
+The behavior also extends to Propel's generated `filterBy()` methods for JSON columns:
+
+```php
+UserQuery::create()
+    ->filterByOptions(['language' => 'fr', 'active' => true, 'address.country' => 'FR'])
+    ->find();
+
+UserQuery::create('u')
+    ->filterByOptions(['score' => 10], Criteria::GREATER_EQUAL)
+    ->find();
+```
+
+Array keys are relative JSON paths and values are scalars or JSON null. All entries must match; an empty array adds no
+condition. Use `whereJsonContains()` for array or object containment. Non-array arguments compare the whole column with
+validated Propel operators; custom SQL is rejected. The method follows the JSON column's PHP name. Regenerate the Propel
+models after updating the behavior.
 
 A valid `alias.Column` reference takes precedence over a JSON path; literal JSON keys containing dots or arrows are not
 supported.
@@ -156,7 +177,7 @@ Joins, standard filters, pagination, and `count()` can be combined with these me
 
 ## Database support
 
-Supports MySQL / MariaDB, PostgreSQL, and SQLite with JSON functions. SQLite containment accepts scalars and lists of
+Supports MySQL/MariaDB, PostgreSQL, and SQLite with JSON functions. SQLite containment accepts scalars and lists of
 scalars; object containment requires MySQL/MariaDB or PostgreSQL.
 
 - Values are bound parameters; selectors and operators are validated.

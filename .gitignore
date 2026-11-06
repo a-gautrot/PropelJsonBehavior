@@ -5,6 +5,12 @@
 /vendor/
 /composer.lock
 
+# Local environment and credentials
+/.env
+/.env.*
+!/.env.example
+!/.env.dist
+
 # Local tool configuration
 /phpunit.xml
 /phpunit-legacy.xml
@@ -19,6 +25,8 @@
 /.phpstan.cache/
 /.psalm/
 /.phpcs-cache
+/.rector.cache/
+/rector-cache/
 
 # Test and coverage reports
 /coverage/

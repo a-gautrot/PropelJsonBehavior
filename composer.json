@@ -3,11 +3,7 @@
   "description": "Integration of JSON query filters in Propel, inspired by Laravel's JSON where clauses",
   "type": "propel-behavior",
   "license": "MIT",
-  "keywords": [
-    "propel",
-    "behavior",
-    "json"
-  ],
+  "keywords": ["propel", "behavior", "json"],
   "authors": [
     {
       "name": "Alexandre Gautrot",
@@ -17,6 +13,7 @@
   "require": {
     "php": "^7.4||>=8.0",
     "ext-json": "*",
+    "ext-pdo": "*",
     "propel/propel": "~2.0.0-beta4||^2.0",
     "symfony/polyfill-php80": "^1.33",
     "symfony/polyfill-php81": "^1.33",
@@ -46,10 +43,18 @@
   },
   "extra": {
     "name": "json",
-    "class": "\\Gautrot\\Propel\\Behavior\\Json\\JsonBehavior"
+    "class": "\\Gautrot\\Propel\\Behavior\\Json\\JsonBehavior",
+    "branch-alias": {
+      "dev-main": "1.0.x-dev"
+    }
   },
   "scripts": {
     "test": "@php tests/run.php",
-    "test:coverage": "@test --coverage-clover tests/coverage.xml --log-junit tests/junit.xml"
+    "test:coverage": "@test --coverage-clover tests/coverage.xml --coverage-text --log-junit tests/junit.xml",
+    "phpstan": "vendor/bin/phpstan analyse -c phpstan.dist.neon",
+    "psalm": "vendor/bin/psalm --config=psalm.dist.xml",
+    "phpcs": "phpcs --standard=PSR2 src",
+    "rector": "rector process --config=rector.php --dry-run",
+    "rector:fix": "rector process --config=rector.php"
   }
 }
