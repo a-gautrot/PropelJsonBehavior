@@ -48,7 +48,7 @@ final class JsonSqlCompiler
      * @return array{string, mixed, int}
      * @throws JsonException
      */
-    public function compare(string $column, JsonPath $path, string $operator, $value): array
+    public function compare(string $column, JsonPath $path, string $operator, mixed $value): array
     {
         $operator = self::operator($operator);
         $type = $this->type($column, $path);
@@ -121,17 +121,11 @@ final class JsonSqlCompiler
             ];
         }
 
-        switch ($this->driver) {
-            case 'mysql':
-                $stringType = 'STRING';
-                break;
-            case 'pgsql':
-                $stringType = 'string';
-                break;
-            default:
-                $stringType = 'text';
-                break;
-        }
+        $stringType = match ($this->driver) {
+            'mysql' => 'STRING',
+            'pgsql' => 'string',
+            default => 'text',
+        };
 
         return [
             "($type = '$stringType' AND $text $operator ?)",
@@ -166,14 +160,11 @@ final class JsonSqlCompiler
      */
     private function type(string $column, JsonPath $path): string
     {
-        switch ($this->driver) {
-            case 'mysql':
-                return "JSON_TYPE({$this->extract($column, $path)})";
-            case 'pgsql':
-                return "jsonb_typeof({$this->extract($column, $path)})";
-            default:
-                return "json_type($column, {$path->sqlPath()})";
-        }
+        return match ($this->driver) {
+            'mysql' => "JSON_TYPE({$this->extract($column, $path)})",
+            'pgsql' => "jsonb_typeof({$this->extract($column, $path)})",
+            default => "json_type($column, {$path->sqlPath()})",
+        };
     }
 
     /**
@@ -183,14 +174,11 @@ final class JsonSqlCompiler
      */
     private function extract(string $column, JsonPath $path): string
     {
-        switch ($this->driver) {
-            case 'mysql':
-                return "JSON_EXTRACT($column, {$path->sqlPath()})";
-            case 'pgsql':
-                return "(CAST($column AS jsonb) #> {$path->postgresPath()})";
-            default:
-                return "json_extract($column, {$path->sqlPath()})";
-        }
+        return match ($this->driver) {
+            'mysql' => "JSON_EXTRACT($column, {$path->sqlPath()})",
+            'pgsql' => "(CAST($column AS jsonb) #> {$path->postgresPath()})",
+            default => "json_extract($column, {$path->sqlPath()})",
+        };
     }
 
     /**
@@ -201,7 +189,7 @@ final class JsonSqlCompiler
      * @return array{string, string, int}
      * @throws JsonException
      */
-    public function contains(string $column, JsonPath $path, $value, bool $not = false): array
+    public function contains(string $column, JsonPath $path, mixed $value, bool $not = false): array
     {
         $encoded = json_encode($value, JSON_THROW_ON_ERROR);
         $extract = $this->extract($column, $path);
@@ -232,11 +220,13 @@ final class JsonSqlCompiler
 
                 $encoded = json_encode($values, JSON_THROW_ON_ERROR);
                 $type = $this->type($column, $path);
-                $sql = "$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wanted"
-                    . " WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual"
-                    . " WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real')"
-                    . " AND json_wanted.type IN ('integer', 'real')))"
-                    . ' AND json_actual.value IS json_wanted.value))';
+                $sql = <<<SQL
+$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wante
+ WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual
+ WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real')
+ AND json_wanted.type IN ('integer', 'real')))
+ AND json_actual.value IS json_wanted.value))
+SQL;
                 break;
         }
 

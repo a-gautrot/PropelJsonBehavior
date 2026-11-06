@@ -2,6 +2,7 @@
 
 namespace Gautrot\Propel\Behavior\Json;
 
+use Gautrot\Propel\Behavior\Json\Tests\fixtures\JsonModelCriteria;
 use InvalidArgumentException;
 use JsonException;
 use LogicException;
@@ -21,10 +22,10 @@ trait JsonQueryTrait
      * @param string $selector
      * @param mixed $operator
      * @param mixed $value
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJson(string $selector, $operator, $value = null): self
+    public function whereJson(string $selector, mixed $operator, mixed $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
@@ -44,13 +45,13 @@ trait JsonQueryTrait
      * @param mixed $value
      * @param string $operator
      * @param bool $not
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
     private function addJsonFilter(
         string $selector,
         string $operation,
-               $value = null,
+        mixed  $value = null,
         string $operator = Criteria::EQUAL,
         bool   $not = false
     ): self
@@ -73,12 +74,13 @@ trait JsonQueryTrait
     private function createJsonCriterion(
         string $selector,
         string $operation,
-               $value = null,
+        mixed  $value = null,
         string $operator = Criteria::EQUAL,
         bool   $not = false
     ): RawModelCriterion
     {
         $path = new JsonPath($selector, false);
+
         if ($path->column === null) {
             throw new InvalidArgumentException('The JSON selector must contain a column.');
         }
@@ -97,20 +99,28 @@ trait JsonQueryTrait
         [$columnMap, $column] = $this->getColumnFromName($path->column, false);
 
         $types = ['JSON', 'VARCHAR', 'LONGVARCHAR', 'CLOB'];
-        if ($columnMap === null || $column === null || !in_array(strtoupper($columnMap->getType()), $types, true)) {
+
+        if ($columnMap === null || $column === null || !$columnMap->getType()
+                    |> strtoupper(...)
+                    |> (fn($x) => in_array($x, $types, true))) {
             throw new InvalidArgumentException('JSON filters require a JSON or text column.');
         }
 
         $adapter = Propel::getServiceContainer()->getAdapter($this->getDbName());
+
         if (!$adapter instanceof PdoAdapter) {
             throw new InvalidArgumentException('JSON filters require a PDO adapter.');
         }
+
         $compiler = new JsonSqlCompiler($adapter->getAdapterId());
         $tableName = $columnMap->getTable()->getName();
+
         if ($tableName === null) {
             throw new LogicException('JSON filters require a named table.');
         }
+
         $column = $this->quoteIdentifier($column, $tableName);
+
         switch ($operation) {
             case 'compare':
                 [$sql, $value, $bindingType] = $compiler->compare($column, $path, $operator, $value);
@@ -122,6 +132,7 @@ trait JsonQueryTrait
                 if (!is_int($value)) {
                     throw new InvalidArgumentException('JSON array length must be an integer.');
                 }
+
                 [$sql, $value, $bindingType] = $compiler->length($column, $path, $operator, $value);
                 break;
             default:
@@ -135,10 +146,10 @@ trait JsonQueryTrait
     /**
      * @param string $selector
      * @param mixed $value
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonContains(string $selector, $value): self
+    public function whereJsonContains(string $selector, mixed $value): self
     {
         return $this->addJsonFilter($selector, 'contains', $value);
     }
@@ -146,10 +157,10 @@ trait JsonQueryTrait
     /**
      * @param string $selector
      * @param mixed $value
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonDoesntContain(string $selector, $value): self
+    public function whereJsonDoesntContain(string $selector, mixed $value): self
     {
         return $this->addJsonFilter($selector, 'contains', $value, Criteria::EQUAL, true);
     }
@@ -158,10 +169,10 @@ trait JsonQueryTrait
      * @param string $selector
      * @param mixed $operator
      * @param int|null $length
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonLength(string $selector, $operator, ?int $length = null): self
+    public function whereJsonLength(string $selector, mixed $operator, ?int $length = null): self
     {
         if (is_int($operator) && $length === null) {
             $length = $operator;
@@ -179,7 +190,7 @@ trait JsonQueryTrait
 
     /**
      * @param string $selector
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
     public function whereJsonContainsKey(string $selector): self
@@ -189,7 +200,7 @@ trait JsonQueryTrait
 
     /**
      * @param string $selector
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
     public function whereJsonDoesntContainKey(string $selector): self
@@ -208,17 +219,20 @@ trait JsonQueryTrait
         if ($comparison === null) {
             return null;
         }
+
         $allowed = [
             Criteria::EQUAL, Criteria::NOT_EQUAL, Criteria::ALT_NOT_EQUAL,
             Criteria::LESS_THAN, Criteria::LESS_EQUAL, Criteria::GREATER_THAN, Criteria::GREATER_EQUAL,
             Criteria::LIKE, Criteria::NOT_LIKE, Criteria::ILIKE, Criteria::NOT_ILIKE,
             Criteria::IN, Criteria::NOT_IN, Criteria::ISNULL, Criteria::ISNOTNULL,
         ];
+
         foreach ($allowed as $operator) {
             if (strtoupper(trim($comparison)) === trim($operator)) {
                 return $operator;
             }
         }
+
         throw new InvalidArgumentException('Unsupported JSON column comparison operator.');
     }
 
@@ -226,7 +240,7 @@ trait JsonQueryTrait
      * @param string $column
      * @param array<string|int, mixed> $filters
      * @param string|null $comparison
-     * @return $this
+     * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
     protected function filterByJsonPaths(string $column, array $filters, ?string $comparison = null): self

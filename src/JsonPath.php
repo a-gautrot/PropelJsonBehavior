@@ -31,9 +31,11 @@ final class JsonPath
 
         if ($columnHasAlias && strpos($selector, '.') === strlen($column)) {
             $aliasColumn = array_shift($parts);
+
             if ($aliasColumn === null) {
                 throw new InvalidArgumentException('The JSON selector must contain an aliased column.');
             }
+
             $column .= '.' . $aliasColumn;
         }
 
@@ -59,12 +61,12 @@ final class JsonPath
     /**
      * Public array properties can receive non-string values at runtime.
      *
-     * @param mixed $segment
+     * @param string $segment
      * @return void
      */
-    private function validateSegment($segment): void
+    private function validateSegment(string $segment): void
     {
-        if (!is_string($segment) || !preg_match('/\A(?:[A-Za-z_]\w*|0|[1-9]\d*)\z/', $segment)) {
+        if (!preg_match('/\A(?:[A-Za-z_]\w*|0|[1-9]\d*)\z/', $segment)) {
             throw new InvalidArgumentException(
                 'JSON path segments must be identifier keys or non-negative array indexes.'
             );
