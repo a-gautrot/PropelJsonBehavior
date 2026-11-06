@@ -15,7 +15,7 @@
 
 ### General
 
-- Added JSON column filters, such as `filterByOptions()`
+- Added JSON column filters with Propel's `filterBy()`
 
 ### Fixes
 
