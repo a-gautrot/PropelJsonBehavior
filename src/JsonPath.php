@@ -61,12 +61,12 @@ final class JsonPath
     /**
      * Public array properties can receive non-string values at runtime.
      *
-     * @param string $segment
+     * @param mixed $segment
      * @return void
      */
-    private function validateSegment(string $segment): void
+    private function validateSegment($segment): void
     {
-        if (!preg_match('/\A(?:[A-Za-z_]\w*|0|[1-9]\d*)\z/', $segment)) {
+        if (!is_string($segment) || !preg_match('/\A(?:[A-Za-z_]\w*|0|[1-9]\d*)\z/', $segment)) {
             throw new InvalidArgumentException(
                 'JSON path segments must be identifier keys or non-negative array indexes.'
             );
