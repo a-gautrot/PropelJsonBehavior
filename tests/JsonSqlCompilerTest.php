@@ -87,7 +87,8 @@ final class JsonSqlCompilerTest extends TestCase
     public function testNullOrdering(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new JsonSqlCompiler('mysql'))->compare('r.options', new JsonPath('Options'), '>', null);
+        (new JsonSqlCompiler('mysql'))
+            ->compare('r.options', new JsonPath('Options'), '>', null);
     }
 
     /**
@@ -97,7 +98,8 @@ final class JsonSqlCompilerTest extends TestCase
     public function testBooleanOrdering(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new JsonSqlCompiler('pgsql'))->compare('r.options', new JsonPath('Options'), '<', true);
+        (new JsonSqlCompiler('pgsql'))
+            ->compare('r.options', new JsonPath('Options'), '<', true);
     }
 
     /**
@@ -107,7 +109,8 @@ final class JsonSqlCompilerTest extends TestCase
     public function testSqliteNestedValues(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new JsonSqlCompiler('sqlite'))->contains('r.options', new JsonPath('Options'), [['nested']]);
+        (new JsonSqlCompiler('sqlite'))
+            ->contains('r.options', new JsonPath('Options'), [['nested']]);
     }
 
     /**

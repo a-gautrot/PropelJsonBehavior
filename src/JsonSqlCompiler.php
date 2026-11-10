@@ -48,7 +48,7 @@ final class JsonSqlCompiler
      * @return array{string, mixed, int}
      * @throws JsonException
      */
-    public function compare(string $column, JsonPath $path, string $operator, mixed $value): array
+    public function compare(string $column, JsonPath $path, string $operator, $value): array
     {
         $operator = self::operator($operator);
         $type = $this->type($column, $path);
@@ -121,11 +121,17 @@ final class JsonSqlCompiler
             ];
         }
 
-        $stringType = match ($this->driver) {
-            'mysql' => 'STRING',
-            'pgsql' => 'string',
-            default => 'text',
-        };
+        switch ($this->driver) {
+            case 'mysql':
+                $stringType = 'STRING';
+                break;
+            case 'pgsql':
+                $stringType = 'string';
+                break;
+            default:
+                $stringType = 'text';
+                break;
+        }
 
         return [
             "($type = '$stringType' AND $text $operator ?)",
@@ -174,11 +180,14 @@ final class JsonSqlCompiler
      */
     private function extract(string $column, JsonPath $path): string
     {
-        return match ($this->driver) {
-            'mysql' => "JSON_EXTRACT($column, {$path->sqlPath()})",
-            'pgsql' => "(CAST($column AS jsonb) #> {$path->postgresPath()})",
-            default => "json_extract($column, {$path->sqlPath()})",
-        };
+        switch ($this->driver) {
+            case 'mysql':
+                return "JSON_EXTRACT($column, {$path->sqlPath()})";
+            case 'pgsql':
+                return "(CAST($column AS jsonb) #> {$path->postgresPath()})";
+            default:
+                return "json_extract($column, {$path->sqlPath()})";
+        }
     }
 
     /**
@@ -189,7 +198,7 @@ final class JsonSqlCompiler
      * @return array{string, string, int}
      * @throws JsonException
      */
-    public function contains(string $column, JsonPath $path, mixed $value, bool $not = false): array
+    public function contains(string $column, JsonPath $path, $value, bool $not = false): array
     {
         $encoded = json_encode($value, JSON_THROW_ON_ERROR);
         $extract = $this->extract($column, $path);

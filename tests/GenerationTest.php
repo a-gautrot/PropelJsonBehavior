@@ -36,15 +36,27 @@ XML;
         $builder->build();
 
         $record = new JsonCoverageRecord();
-        $record->setLabel('French')->setPayload(['language' => 'fr', 'active' => true])->save();
-        (new JsonCoverageRecord())->setLabel('English')->setPayload(['language' => 'en'])->save();
+        $record->setLabel('French')
+            ->setPayload(['language' => 'fr', 'active' => true])
+            ->save();
+        (new JsonCoverageRecord())->setLabel('English')
+            ->setPayload(['language' => 'en'])
+            ->save();
 
-        $found = JsonCoverageRecordQuery::create()->filterByPayload(['language' => 'fr', 'active' => true])->findOne();
+        $found = JsonCoverageRecordQuery::create()
+            ->filterByPayload(['language' => 'fr', 'active' => true])
+            ->findOne();
         self::assertNotNull($found);
         self::assertSame($record->getPrimaryKey(), $found->getPrimaryKey());
         self::assertSame('French', $found->getLabel());
-        self::assertSame(1, JsonCoverageRecordQuery::create()->whereJson('Payload->language', 'en')->count());
-        self::assertSame(2, JsonCoverageRecordQuery::create()->filterByPayload(null, Criteria::ISNOTNULL)->count());
-        self::assertSame(2, JsonCoverageRecordQuery::create()->filterByPayload([])->count());
+        self::assertSame(1, JsonCoverageRecordQuery::create()
+            ->whereJson('Payload->language', 'en')
+            ->count());
+        self::assertSame(2, JsonCoverageRecordQuery::create()
+            ->filterByPayload(null, Criteria::ISNOTNULL)
+            ->count());
+        self::assertSame(2, JsonCoverageRecordQuery::create()
+            ->filterByPayload([])
+            ->count());
     }
 }

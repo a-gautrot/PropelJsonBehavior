@@ -62,19 +62,29 @@ XML;
         $builder->build($dsn, getenv('TEST_USER') ?: null, getenv('TEST_PASSWORD') ?: null, $adapter);
 
         $documents = [
-            'fr' => ['language' => 'fr', 'languages' => ['fr', 'en'], 'active' => true, 'score' => 12, 'nullable' => null, 'nested' => ['country' => 'FR']],
+            'fr' => [
+                'language' => 'fr', 'languages' => ['fr', 'en'], 'active' => true, 'score' => 12, 'nullable' => null,
+                'nested' => ['country' => 'FR']
+            ],
             'en' => ['language' => 'en', 'languages' => ['en'], 'active' => false, 'score' => '12'],
             'empty' => ['languages' => [], 'active' => 1],
             'injection' => ['language' => "fr' OR 1=1 --", 'languages' => [true, 1, null]],
         ];
         foreach ($documents as $label => $document) {
             $record = new JsonBehaviorRecord();
-            $record->setLabel($label)->setOptions($document)->setPreferences(['locale' => $label])->save();
+            $record->setLabel($label)
+                ->setOptions($document)
+                ->setPreferences(['locale' => $label])
+                ->save();
         }
         $record = new JsonBehaviorRecord();
         $record->setLabel('sql-null')->save();
-        $child = JsonBehaviorRecordQuery::create()->findOneByLabel('en');
-        $child->setParentId(JsonBehaviorRecordQuery::create()->findOneByLabel('fr')->getId())->save();
+        $child = JsonBehaviorRecordQuery::create()
+            ->findOneByLabel('en');
+        $child->setParentId(JsonBehaviorRecordQuery::create()
+            ->findOneByLabel('fr')
+            ->getId())
+            ->save();
     }
 
     /**
@@ -83,7 +93,8 @@ XML;
     public static function invalidSelectors(): array
     {
         return [
-            ['Options->'], ["Options->language' OR 1=1 --"], ['Options->*'], ['Options->-1'], ['Options; DROP TABLE users'],
+            ['Options->'], ["Options->language' OR 1=1 --"], ['Options->*'], ['Options->-1'],
+            ['Options; DROP TABLE users'],
             ['Options..language'], ['Options.language.'], ['.Options.language'], ['u..Options.language'],
             ["Options.language' OR 1=1 --"], ['Options.languages.-1'], ['Options.languages.*'],
         ];
@@ -94,12 +105,18 @@ XML;
      */
     public function testScalarFilters(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->language', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->score', Criteria::GREATER_EQUAL, 10)));
-        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->score', '12')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->active', true)));
-        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->active', false)));
-        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->language', "fr' OR 1=1 --")));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->language', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->score', Criteria::GREATER_EQUAL, 10)));
+        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->score', '12')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->active', true)));
+        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->active', false)));
+        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->language', "fr' OR 1=1 --")));
     }
 
     /**
@@ -107,7 +124,10 @@ XML;
      */
     private function labels($query): array
     {
-        return $query->orderByLabel()->select('Label')->find()->getData();
+        return $query->orderByLabel()
+            ->select('Label')
+            ->find()
+            ->getData();
     }
 
     /**
@@ -115,13 +135,20 @@ XML;
      */
     public function testOptions(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['language' => 'fr', 'active' => true])));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['nested.country' => 'FR', 'languages->0' => 'fr'])));
-        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['score' => '12'])));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['nullable' => null])));
-        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['absent' => null])));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['score' => 10], Criteria::GREATER_EQUAL)));
-        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['language' => "fr' OR 1=1 --"])));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['language' => 'fr', 'active' => true])));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['nested.country' => 'FR', 'languages->0' => 'fr'])));
+        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['score' => '12'])));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['nullable' => null])));
+        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['absent' => null])));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['score' => 10], Criteria::GREATER_EQUAL)));
+        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['language' => "fr' OR 1=1 --"])));
     }
 
     /**
@@ -129,13 +156,20 @@ XML;
      */
     public function testOptionAliases(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->filterByOptions(['language' => 'fr'])->filterByLabel('fr')));
-        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByLabel('en')->_or()->filterByOptions(['language' => 'fr', 'active' => true])));
-        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(['language' => 'fr', 'active' => true])->_or()->filterByLabel('en')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->filterByOptions(['language' => 'fr'])
+            ->filterByLabel('fr')));
+        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByLabel('en')
+            ->_or()->filterByOptions(['language' => 'fr', 'active' => true])));
+        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['language' => 'fr', 'active' => true])
+            ->_or()->filterByLabel('en')));
         $query = JsonBehaviorRecordQuery::create();
         self::assertSame($query, $query->filterByOptions([]));
         self::assertSame(5, $query->count());
-        self::assertSame(['sql-null'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions()));
+        self::assertSame(['sql-null'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions()));
     }
 
     /**
@@ -170,8 +204,11 @@ XML;
      */
     public function testColumnOperators(): void
     {
-        self::assertSame(['sql-null'], $this->labels(JsonBehaviorRecordQuery::create()->filterByOptions(null, Criteria::ISNULL)));
-        self::assertSame(4, JsonBehaviorRecordQuery::create()->filterByOptions(null, Criteria::ISNOTNULL)->count());
+        self::assertSame(['sql-null'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByOptions(null, Criteria::ISNULL)));
+        self::assertSame(4, JsonBehaviorRecordQuery::create()
+            ->filterByOptions(null, Criteria::ISNOTNULL)
+            ->count());
         $query = JsonBehaviorRecordQuery::create()->filterByOptions('unmatched', Criteria::NOT_EQUAL);
         $parameters = [];
         self::assertStringContainsString('<>', $query->createSelectSql($parameters));
@@ -184,7 +221,8 @@ XML;
     public function testInvalidOptionPath(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->filterByOptions(["language' OR 1=1 --" => 'fr']);
+        JsonBehaviorRecordQuery::create()
+            ->filterByOptions(["language' OR 1=1 --" => 'fr']);
     }
 
     /**
@@ -192,8 +230,10 @@ XML;
      */
     public function testColumnFilters(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->filterByPreferences(['locale' => 'fr'])));
-        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByLabel(['fr', 'en'])));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->filterByPreferences(['locale' => 'fr'])));
+        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByLabel(['fr', 'en'])));
     }
 
     /**
@@ -202,7 +242,8 @@ XML;
     public function testDocumentValues(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->filterByOptions(['languages' => ['fr', 'en']]);
+        JsonBehaviorRecordQuery::create()
+            ->filterByOptions(['languages' => ['fr', 'en']]);
     }
 
     /**
@@ -211,18 +252,30 @@ XML;
     public function testDottedPaths(): void
     {
         foreach (['Options.language', 'Options->language'] as $selector) {
-            self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson($selector, 'fr')));
+            self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+                ->whereJson($selector, 'fr')));
         }
+
         foreach (['Options.nested.country', 'Options.nested->country', 'Options->nested.country'] as $selector) {
-            self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson($selector, 'FR')));
+            self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+                ->whereJson($selector, 'FR')));
         }
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options.languages.0', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->whereJson('r.Options.language', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->whereJson('r.Options->nested.country', 'FR')));
-        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create('r')->joinParent('p')->whereJson('p.Options.language', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('Options')->whereJson('Options.language', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('Options')->whereJson('Options.Options.language', 'fr')));
-        self::assertSame(4, JsonBehaviorRecordQuery::create('r')->whereJsonContainsKey('r.Options')->count());
+
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options.languages.0', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->whereJson('r.Options.language', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->whereJson('r.Options->nested.country', 'FR')));
+        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->joinParent('p')->whereJson('p.Options.language', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('Options')
+            ->whereJson('Options.language', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('Options')
+            ->whereJson('Options.Options.language', 'fr')));
+        self::assertSame(4, JsonBehaviorRecordQuery::create('r')
+            ->whereJsonContainsKey('r.Options')
+            ->count());
     }
 
     /**
@@ -230,12 +283,18 @@ XML;
      */
     public function testDottedFilters(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options.languages', ['en', 'fr'])));
-        self::assertSame(['empty', 'en', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonDoesntContain('Options.languages', 'fr')));
-        self::assertSame(['empty'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonLength('Options.languages', 0)));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContainsKey('Options.nullable')));
-        self::assertSame(['empty', 'en', 'injection', 'sql-null'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonDoesntContainKey('Options.nullable')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options.nullable', null)));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options.languages', ['en', 'fr'])));
+        self::assertSame(['empty', 'en', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonDoesntContain('Options.languages', 'fr')));
+        self::assertSame(['empty'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options.languages', 0)));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContainsKey('Options.nullable')));
+        self::assertSame(['empty', 'en', 'injection', 'sql-null'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonDoesntContainKey('Options.nullable')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options.nullable', null)));
     }
 
     /**
@@ -243,9 +302,12 @@ XML;
      */
     public function testNullValues(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->nullable', null)));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContainsKey('Options->nullable')));
-        self::assertSame(['empty', 'en', 'injection', 'sql-null'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonDoesntContainKey('Options->nullable')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->nullable', null)));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContainsKey('Options->nullable')));
+        self::assertSame(['empty', 'en', 'injection', 'sql-null'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonDoesntContainKey('Options->nullable')));
     }
 
     /**
@@ -253,12 +315,18 @@ XML;
      */
     public function testArrays(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', 'fr')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', ['en', 'fr'])));
-        self::assertSame(['empty', 'en', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonDoesntContain('Options->languages', 'fr')));
-        self::assertSame(['fr', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', Criteria::GREATER_EQUAL, 2)));
-        self::assertSame(['empty'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', 0)));
-        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', true)));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options->languages', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options->languages', ['en', 'fr'])));
+        self::assertSame(['empty', 'en', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonDoesntContain('Options->languages', 'fr')));
+        self::assertSame(['fr', 'injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options->languages', Criteria::GREATER_EQUAL, 2)));
+        self::assertSame(['empty'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options->languages', 0)));
+        self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options->languages', true)));
     }
 
     /**
@@ -266,9 +334,13 @@ XML;
      */
     public function testNestedPaths(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->whereJson('r.Options->nested->country', 'FR')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')->whereJson('r.Options->languages->0', 'fr')));
-        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create('r')->joinParent('p')->whereJson('p.Options->language', 'fr')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->whereJson('r.Options->nested->country', 'FR')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->whereJson('r.Options->languages->0', 'fr')));
+        self::assertSame(['en'], $this->labels(JsonBehaviorRecordQuery::create('r')
+            ->joinParent('p')
+            ->whereJson('p.Options->language', 'fr')));
     }
 
     /**
@@ -276,17 +348,26 @@ XML;
      */
     public function testCombinedFilters(): void
     {
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->filterByLabel('fr')->whereJsonContains('Options->languages', 'en')));
-        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->language', 'fr')->_or()->whereJson('Options->language', 'en')));
-        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->language', 'fr')->whereJson('Options->active', true)));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->filterByLabel('fr')
+            ->whereJsonContains('Options->languages', 'en')));
+        self::assertSame(['en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->language', 'fr')
+            ->_or()->whereJson('Options->language', 'en')));
+        self::assertSame(['fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->language', 'fr')
+            ->whereJson('Options->active', true)));
     }
 
-    /** @dataProvider invalidSelectors */
+    /**
+     * @dataProvider invalidSelectors
+     */
     #[DataProvider('invalidSelectors')]
     public function testInvalidSelector(string $selector): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJson($selector, 'fr');
+        JsonBehaviorRecordQuery::create()
+            ->whereJson($selector, 'fr');
     }
 
     /**
@@ -295,7 +376,8 @@ XML;
     public function testInvalidOperator(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJson('Options->score', '= 1 OR 1=1 --', 1);
+        JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->score', '= 1 OR 1=1 --', 1);
     }
 
     /**
@@ -303,7 +385,8 @@ XML;
      */
     public function testBoundValues(): void
     {
-        $query = JsonBehaviorRecordQuery::create('r')->whereJson('r.Options->language', "fr' OR 1=1 --");
+        $query = JsonBehaviorRecordQuery::create('r')
+            ->whereJson('r.Options->language', "fr' OR 1=1 --");
         $parameters = [];
         $sql = $query->createSelectSql($parameters);
         self::assertStringNotContainsString("fr' OR 1=1 --", $sql);
@@ -315,7 +398,10 @@ XML;
      */
     public function testQuotedColumns(): void
     {
-        self::assertSame(1, JsonBehaviorRecordQuery::create('r')->setIdentifierQuoting(true)->whereJson('r.Options->language', 'fr')->count());
+        self::assertSame(1, JsonBehaviorRecordQuery::create('r')
+            ->setIdentifierQuoting(true)
+            ->whereJson('r.Options->language', 'fr')
+            ->count());
     }
 
     /**
@@ -323,9 +409,12 @@ XML;
      */
     public function testMissingKeys(): void
     {
-        self::assertSame(['empty', 'en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContainsKey('Options->active')));
-        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()->whereJson('Options->absent', null)));
-        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonLength('Options->nested', 1)));
+        self::assertSame(['empty', 'en', 'fr'], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContainsKey('Options->active')));
+        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->absent', null)));
+        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options->nested', 1)));
     }
 
     /**
@@ -334,10 +423,13 @@ XML;
     public function testArrayTypes(): void
     {
         foreach ([true, 1, null] as $value) {
-            self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', $value)));
+            self::assertSame(['injection'], $this->labels(JsonBehaviorRecordQuery::create()
+                ->whereJsonContains('Options->languages', $value)));
         }
-        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', false)));
-        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()->whereJsonContains('Options->languages', '1')));
+        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options->languages', false)));
+        self::assertSame([], $this->labels(JsonBehaviorRecordQuery::create()
+            ->whereJsonContains('Options->languages', '1')));
     }
 
     /**
@@ -346,7 +438,8 @@ XML;
     public function testInvalidColumn(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJson('Id', 1);
+        JsonBehaviorRecordQuery::create()
+            ->whereJson('Id', 1);
     }
 
     /**
@@ -355,7 +448,8 @@ XML;
     public function testOperatorType(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJson('Options->score', [], 1);
+        JsonBehaviorRecordQuery::create()
+            ->whereJson('Options->score', [], 1);
     }
 
     /**
@@ -364,7 +458,8 @@ XML;
     public function testMissingLength(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', '>');
+        JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options->languages', '>');
     }
 
     /**
@@ -373,7 +468,8 @@ XML;
     public function testLengthOperatorType(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        JsonBehaviorRecordQuery::create()->whereJsonLength('Options->languages', [], 1);
+        JsonBehaviorRecordQuery::create()
+            ->whereJsonLength('Options->languages', [], 1);
     }
 
     /**
@@ -388,7 +484,8 @@ XML;
             Criteria::IN, Criteria::NOT_IN, Criteria::ISNULL, Criteria::ISNOTNULL,
         ];
         foreach ($operators as $operator) {
-            $query = JsonBehaviorRecordQuery::create()->filterByOptions('unmatched', ' ' . strtolower($operator) . ' ');
+            $query = JsonBehaviorRecordQuery::create()
+                ->filterByOptions('unmatched', ' ' . strtolower($operator) . ' ');
             self::assertSame($operator, $query->getLastCriterion()->getComparison());
         }
     }

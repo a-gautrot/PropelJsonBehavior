@@ -25,7 +25,7 @@ trait JsonQueryTrait
      * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJson(string $selector, mixed $operator, mixed $value = null): self
+    public function whereJson(string $selector, $operator, $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
@@ -51,7 +51,7 @@ trait JsonQueryTrait
     private function addJsonFilter(
         string $selector,
         string $operation,
-        mixed  $value = null,
+               $value = null,
         string $operator = Criteria::EQUAL,
         bool   $not = false
     ): self
@@ -74,7 +74,7 @@ trait JsonQueryTrait
     private function createJsonCriterion(
         string $selector,
         string $operation,
-        mixed  $value = null,
+               $value = null,
         string $operator = Criteria::EQUAL,
         bool   $not = false
     ): RawModelCriterion
@@ -100,9 +100,7 @@ trait JsonQueryTrait
 
         $types = ['JSON', 'VARCHAR', 'LONGVARCHAR', 'CLOB'];
 
-        if ($columnMap === null || $column === null || !$columnMap->getType()
-                    |> strtoupper(...)
-                    |> (fn($x) => in_array($x, $types, true))) {
+        if ($columnMap === null || $column === null || !in_array(strtoupper($columnMap->getType()), $types, true)) {
             throw new InvalidArgumentException('JSON filters require a JSON or text column.');
         }
 
@@ -149,7 +147,7 @@ trait JsonQueryTrait
      * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonContains(string $selector, mixed $value): self
+    public function whereJsonContains(string $selector, $value): self
     {
         return $this->addJsonFilter($selector, 'contains', $value);
     }
@@ -160,7 +158,7 @@ trait JsonQueryTrait
      * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonDoesntContain(string $selector, mixed $value): self
+    public function whereJsonDoesntContain(string $selector, $value): self
     {
         return $this->addJsonFilter($selector, 'contains', $value, Criteria::EQUAL, true);
     }
@@ -172,7 +170,7 @@ trait JsonQueryTrait
      * @return JsonQueryTrait|JsonModelCriteria
      * @throws JsonException
      */
-    public function whereJsonLength(string $selector, mixed $operator, ?int $length = null): self
+    public function whereJsonLength(string $selector, $operator, ?int $length = null): self
     {
         if (is_int($operator) && $length === null) {
             $length = $operator;
