@@ -12,7 +12,6 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
     ])
-    ->withPhpVersion(PhpVersion::PHP_74)
     ->withPhpSets()
     ->withSets([
         SymfonySetList::COMPOSER_BASED,
