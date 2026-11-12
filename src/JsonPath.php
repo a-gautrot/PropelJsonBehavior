@@ -31,9 +31,11 @@ final class JsonPath
 
         if ($columnHasAlias && strpos($selector, '.') === strlen($column)) {
             $aliasColumn = array_shift($parts);
+
             if ($aliasColumn === null) {
                 throw new InvalidArgumentException('The JSON selector must contain an aliased column.');
             }
+
             $column .= '.' . $aliasColumn;
         }
 

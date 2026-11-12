@@ -232,11 +232,13 @@ final class JsonSqlCompiler
 
                 $encoded = json_encode($values, JSON_THROW_ON_ERROR);
                 $type = $this->type($column, $path);
-                $sql = "$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wanted"
-                    . " WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual"
-                    . " WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real')"
-                    . " AND json_wanted.type IN ('integer', 'real')))"
-                    . ' AND json_actual.value IS json_wanted.value))';
+                $sql = <<<SQL
+$type = 'array' AND NOT EXISTS (SELECT 1 FROM json_each(?) AS json_wanted
+ WHERE NOT EXISTS (SELECT 1 FROM json_each($column, {$path->sqlPath()}) AS json_actual
+ WHERE (json_actual.type = json_wanted.type OR (json_actual.type IN ('integer', 'real')
+ AND json_wanted.type IN ('integer', 'real')))
+ AND json_actual.value IS json_wanted.value))
+SQL;
                 break;
         }
 

@@ -52,6 +52,7 @@ final class JsonBehaviorQueryBuilderModifier
     {
         $parser = new PhpParser($script, true);
         $table = $this->behavior->getTable();
+
         if ($table === null) {
             throw new LogicException('JSON query generation requires a table.');
         }
@@ -63,6 +64,7 @@ final class JsonBehaviorQueryBuilderModifier
 
             $method = 'filterBy' . $column->getPhpName();
             $code = $parser->findMethod($method);
+
             if ($code === false) {
                 continue;
             }
@@ -72,14 +74,17 @@ final class JsonBehaviorQueryBuilderModifier
                 'variableName' => $column->getCamelCaseName(),
             ]);
             $openingBrace = strpos($code, '{');
+
             if ($openingBrace === false) {
                 throw new LogicException('Unable to locate the generated JSON filter body.');
             }
+
             $position = $openingBrace + 1;
             $code = substr_replace($code, $body, $position, 0);
             $code = str_replace('The value to use as filter', 'A JSON path/value map or a whole-column value', $code);
             $parser->replaceMethod($method, $code);
         }
+
         $script = $parser->getCode();
     }
 }
